@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تعرف على الأرقام - مشروع التخرج</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding-top: 50px; }
+        canvas { border: 2px solid #333; background: #000; cursor: crosshair; }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; }
+        button.clear { background: #dc3545; }
+        #result { margin-top: 20px; font-size: 24px; font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <h1>ارسم رقماً (0-9)</h1>
+    <canvas id="canvas" width="280" height="280"></canvas>
+    
+    <div class="controls">
+        <button onclick="predict()">توقع الرقم</button>
+        <button class="clear" onclick="clearCanvas()">مسح اللوحة</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        // إعدادات القلم (أبيض على خلفية سوداء ليناسب MNIST)
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 15;
+        ctx.lineCap = "round";
+
+        canvas.onmousedown = () => isDrawing = true;
+        canvas.onmouseup = () => { isDrawing = false; ctx.beginPath(); };
+        canvas.onmousemove = draw;
+
+        function draw(e) {
+            if (!isDrawing) return;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('result').innerText = "";
+        }
+
+        function predict() {
+            // تحويل الرسمة لصورة وإرسالها للسيرفر
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('file', blob, 'digit.png');
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.prediction !== undefined) {
+                        document.getElementById('result').innerText = "الرقم المتوقع هو: " + data.prediction;
+                    } else {
+                        alert("خطأ: " + data.error);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
