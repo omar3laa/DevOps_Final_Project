@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from PIL import Image
+from PIL import Image , ImageOps
 import io
 from model import EnhancedCNN
 app = Flask(__name__)
@@ -22,9 +22,29 @@ transform = transforms.Compose([
 ])
 
 def transform_image(image_bytes):
-    image = Image.open(io.BytesIO(image_bytes))
-    return transform(image).unsqueeze(0).to(device) 
+    image = Image.open(io.BytesIO(image_bytes)).convert('L')
+    
+    bbox = image.getbbox()
+    if bbox:
+        image = image.crop(bbox)
+        
 
+    width, height = image.size
+    max_dim = max(width, height)
+    new_image = Image.new('L', (max_dim, max_dim), color=0)
+    
+    offset_x = (max_dim - width) // 2
+    offset_y = (max_dim - height) // 2
+    new_image.paste(image, (offset_x, offset_y))
+    
+
+    new_image = ImageOps.expand(new_image, border=int(max_dim * 0.25), fill=0)
+    
+
+    new_image = new_image.resize((28, 28), Image.Resampling.LANCZOS)
+    
+
+    return transform(new_image).unsqueeze(0).to(device)
 
 @app.route('/')
 def home():
@@ -58,4 +78,4 @@ def predict():
         return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=18099)
