@@ -25,10 +25,10 @@ def transform_image(image_bytes):
     image = Image.open(io.BytesIO(image_bytes)).convert('L')
     
     bbox = image.getbbox()
-    if bbox:
-        image = image.crop(bbox)
-        
-
+  
+    if not bbox:
+        raise ValueError("empty_canvas")
+    image = image.crop(bbox)
     width, height = image.size
     max_dim = max(width, height)
     new_image = Image.new('L', (max_dim, max_dim), color=0)

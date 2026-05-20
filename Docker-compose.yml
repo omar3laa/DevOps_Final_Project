@@ -1,0 +1,13 @@
+version: '3.11'
+
+services:
+  web-app:
+    build: .
+    container_name: devops_flask_app
+    ports:
+      - "18099:18099"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
