@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // حط هنا رابط المستودع الجديد الخاص بمشروع الأرقام
-        REPO_URL = 'https://github.com/omar3laa/Digit_Recognition_Deployment.git' 
+        REPO_URL = 'https://github.com/omar3laa/DevOps_Final_Project' 
         BRANCH = 'main'
         GIT_CREDENTIALS_ID = 'GitCred'
         SCANNER_HOME = tool 'sonar_server'
